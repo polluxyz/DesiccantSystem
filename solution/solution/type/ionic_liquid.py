@@ -63,7 +63,7 @@ class ILD(AbstractSolution):
         if Pv >= Pa:
             raise ValueError("Pv should less than Pa")
 
-        w = 0.6222 * Pv / (Pa - Pv)
+        w = 0.62198 * Pv / (Pa - Pv)
 
         self._properties["W"] = w
         return w

@@ -63,7 +63,7 @@ class LiquidDesiccantSystem:
         return self.__m_a_out
 
     @property
-    def m_a_dry(self):
+    def m_a(self):
         if self.__m_da is None:
             self.__m_da = self.__m_a_in / (1 + self.__inlet_air.humidity)
         return self.__m_da
@@ -99,10 +99,10 @@ class LiquidDesiccantSystem:
         Q_heat = self.__sensibleHeatTransfer()  # kW
         hfg = self.__waterEvapEnthalpy(self.__inlet_solution.temperature)  # kJ/kg
         h_a_out = (
-            self.__m_a_in * self.__inlet_air.enthalpy / 1e3
+            self.m_a * self.__inlet_air.enthalpy / 1e3
             - self.dehumid_mass_flow * hfg
             - Q_heat
-        ) / self.m_a_out
+        ) / self.m_a
 
         self.__outlet_air = HumidAir().with_state(
             InputHumidAir.pressure(101325),
@@ -113,7 +113,7 @@ class LiquidDesiccantSystem:
     def __setDehimidProperties(self):
         w_a_out = self.__dehumidAirHumidity()
         self.__w_dehumid = self.__inlet_air.humidity - w_a_out
-        self.__m_dehumid = self.m_a_dry * self.__w_dehumid
+        self.__m_dehumid = self.m_a * self.__w_dehumid
 
     def __setOutletSolution(self):
         x_out = self.__m_s_in * self.inlet_solution.concentration / self.m_s_out
@@ -149,4 +149,4 @@ class LiquidDesiccantSystem:
     def __sensibleHeatTransfer(self):
         T_eq = self.__dehumidAirTemperature()
         cp_air = 1.006  # kJ/kg/K
-        return self.m_a_dry * cp_air * (self.__inlet_air.temperature - T_eq)  # kW
+        return self.m_a * cp_air * (self.__inlet_air.temperature - T_eq)  # kW
