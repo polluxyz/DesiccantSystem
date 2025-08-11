@@ -74,7 +74,7 @@ class CoolingTower:
     def m_evap(self):
         if self.__m_evap is None:
             self.__m_evap = (
-                self.__LG
+                self.LG
                 * self.__evaperate_rate
                 * (self.inlet_water.temperature - self.outlet_water.temperature)
             )
@@ -165,7 +165,10 @@ class CoolingTower:
 
     def __setOutletWater(self):
         air_wet_bulb = self.__inlet_air.wet_bulb_temperature
-        if self.__target_temp is not None or self.__target_temp < air_wet_bulb:
+        if (
+            self.__target_temp is not None
+            and self.__target_temp > air_wet_bulb + self.__approach_temp
+        ):
             outlet_water_temperature = self.__target_temp
         else:
             outlet_water_temperature = air_wet_bulb + self.__approach_temp

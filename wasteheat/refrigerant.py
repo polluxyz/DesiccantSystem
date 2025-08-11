@@ -161,17 +161,18 @@ class Refrigerant:
         # Point 3
         self.__h3 = PropsSI("H", "T", self.__T_cond, "Q", 0, self.__ref_name) / 1000
 
-        self.__h3_subcool = (
-            PropsSI(
-                "H",
-                "T",
-                self.__T_cond - self.__subcool,
-                "P",
-                self.__P_cond,
-                self.__ref_name,
+        if self.__subcool:
+            self.__h3_subcool = (
+                PropsSI(
+                    "H",
+                    "T",
+                    self.__T_cond - self.__subcool,
+                    "P",
+                    self.__P_cond,
+                    self.__ref_name,
+                )
+                / 1000
             )
-            / 1000
-        )
 
         # Point 4
         if self.__subcool:
@@ -188,7 +189,9 @@ class Refrigerant:
 
         return P_iso, h_iso
 
-    def plotPH_Diagram(self):
+    def plotPH_Diagram(
+        self, route: str, temp_line: bool = False, show_legend: bool = True
+    ):
 
         # === 全域 Matplotlib 設定為 Times New Roman + 刻度、外框、字型大小、粗體 ===
         plt.rcParams["font.family"] = "serif"
@@ -266,43 +269,49 @@ class Refrigerant:
 
         # Annotate points
         for i, (h, p) in enumerate(zip(h_cycle, P_cycle), start=0):
-            label = f"{(i+1)%4+1}"
+            if i == 1 or i == 3:
+                label = f"{(i+1)%4+1}'"
+            else:
+                label = f"{(i+1)%4+1}"
+
             plt.annotate(
                 label,
                 xy=(h, p),  # 參考座標點
-                xytext=(-3, 3),  # 文字相對座標點往上 5 points
+                xytext=(6, 3),  # 文字相對座標點
                 textcoords="offset points",
-                ha="right",  # 水平置中
+                ha="left",  # 水平置中
                 va="bottom",  # 垂直底部對齊
                 fontweight="bold",
                 fontsize=12,
             )
 
-        plt.axhline(
-            self.P_evap / 1e6,
-            color="blue",
-            linestyle="--",
-            label=f"Evap @ {self.__T_evap-273.15:.0f}°C",
-            zorder=1,
-        )
-        plt.axhline(
-            self.P_cond / 1e6,
-            color="orange",
-            linestyle="--",
-            label=f"Cond @ {self.__T_cond-273.15:.0f}°C",
-            zorder=1,
-        )
+        if temp_line:
+            plt.axhline(
+                self.P_evap / 1e6,
+                color="blue",
+                linestyle="--",
+                label=f"Evap @ {self.__T_evap-273.15:.0f}°C",
+                zorder=1,
+            )
+            plt.axhline(
+                self.P_cond / 1e6,
+                color="orange",
+                linestyle="--",
+                label=f"Cond @ {self.__T_cond-273.15:.0f}°C",
+                zorder=1,
+            )
 
         # Axes settings
         plt.yscale("log")
         plt.xlabel("Enthalpy (kJ/kg)")
         plt.ylabel("Pressure (MPa)")
         # plt.title(f"{self.__ref_name} p-h Diagram")
-        plt.legend(loc="upper left", frameon=False)
-        plt.grid(True, which="both", linestyle="--", linewidth=0.5, zorder=0)
+        if show_legend:
+            plt.legend(loc="upper left", frameon=False)
+        # plt.grid(True, which="both", linestyle="--", linewidth=0.5, zorder=0)
         plt.tight_layout()
         plt.savefig(
-            "ph_diagram.png",  # 檔名，可含路徑
+            route,  # 檔名，可含路徑
             dpi=300,  # 解析度
             format="png",  # 檔案格式
             bbox_inches="tight",  # 緊貼邊界，不留多餘空白

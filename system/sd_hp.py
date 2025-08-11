@@ -67,6 +67,8 @@ class SD_HP:
 
         self.__total_work: float = None
 
+        self.__hp_in_air: HumidAir = None
+
     @property
     def water(self):
         return self.__water
@@ -175,6 +177,12 @@ class SD_HP:
                         ads.outlet_air, self.__m_air, self.__air, self.__m_air, 0.3
                     )
 
+                    self.__hp_in_air = HumidAir().with_state(
+                        InputHumidAir.pressure(101325),  # Pa
+                        InputHumidAir.enthalpy(HX_cycle.outlet_cold.enthalpy),
+                        InputHumidAir.humidity(HX_cycle.outlet_cold.humidity),
+                    )
+
                     reg_air = HumidAir().with_state(
                         InputHumidAir.pressure(101325),  # Pa
                         InputHumidAir.enthalpy(
@@ -241,10 +249,20 @@ class SD_HP:
         print("冷卻水塔出口空氣相對濕度 (%)：", self.CT.outlet_air.relative_humidity)
         print("冷卻水塔入水溫度 (°C)：", self.CT.inlet_water.temperature)
         print("冷卻水塔出水溫度 (°C)：", self.CT.outlet_water.temperature)
-        print("熱泵入口空氣溫度 (°C)：", self.HP.inlet_cond.temperature)
-        print("熱泵出口空氣溫度 (°C)：", self.HP.outlet_cond.temperature)
-        print("熱泵入口空氣相對濕度 (%)：", self.HP.inlet_cond.temperature)
-        print("熱泵出口空氣相對濕度 (%)：", self.HP.outlet_cond.temperature)
+        print(
+            "熱泵入口空氣溫度 (°C)：",
+            self.__hp_in_air.temperature if self.__hx_on else self.__air.temperature,
+        )
+        print("熱泵出口空氣溫度 (°C)：", self.reg.inlet_air.temperature)
+        print(
+            "熱泵入口空氣相對濕度 (%)：",
+            (
+                self.__hp_in_air.relative_humidity
+                if self.__hx_on
+                else self.__air.relative_humidity
+            ),
+        )
+        print("熱泵出口空氣相對濕度 (%)：", self.reg.inlet_air.relative_humidity)
         print("除濕轉輪吸附入口空氣溫度 (°C)：", self.ads.inlet_air.temperature)
         print("除濕轉輪吸附出口空氣溫度 (°C)：", self.ads.outlet_air.temperature)
         print(
